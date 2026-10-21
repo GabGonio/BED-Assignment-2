@@ -8,10 +8,18 @@ export const getAllTickets = async (): Promise<Ticket[]> => {
 };
 
 
-export const getTicketById = async (id:number): Promise<Ticket | null> => {
+
+export const getTicketById = async (id: number): Promise<Ticket | null> => {
     const ticket = tickets.find(t => t.id === id);
-    return ticket ? structuredClone(ticket) : null;
+
+    if (ticket) {
+        return structuredClone(ticket);
+    } else {
+        return null;
+    }
 };
+
+
 
 
 export const getTicketAge = (ticket: Ticket): number => {
@@ -66,4 +74,62 @@ export const getUrgencyLevel = (ticket: Ticket): string => {
     } else {
         return "Critical. Immediate attention required.";
     }
+};
+
+
+export const createTicket = async (ticketData: {
+    title: string;
+    description: string;
+    priority: Ticket["priority"];
+}): Promise<Ticket> => {
+    const newTicket: Ticket = {
+        id: Date.now(),
+        title: ticketData.title,
+        description: ticketData.description,
+        priority: ticketData.priority,
+        status: "open",
+        createdAt: new Date()
+    };
+
+    tickets.push(newTicket);
+    return structuredClone(newTicket);
+};
+
+
+
+export const updateTicket = async (
+    id: number,
+    updateData: {
+        title?: string;
+        description?: string;
+        priority?: Ticket["priority"];
+        status?: Ticket["status"];
+    }
+): Promise<Ticket | null> => {
+    const ticketIndex = tickets.findIndex(t => t.id === id);
+
+    if (ticketIndex === -1) {
+        return null;
+    }
+
+    tickets[ticketIndex] = {
+        ...tickets[ticketIndex],
+        ...updateData
+    };
+
+    return structuredClone(tickets[ticketIndex]);
+};
+
+
+
+export const deleteTicket = async (id: number): Promise<boolean> => {
+    const ticketIndex = tickets.findIndex(t => t.id === id);
+
+    if (ticketIndex === -1) {
+        return false;
+    }
+
+    tickets.splice(ticketIndex, 1);
+
+    return true;
 };
