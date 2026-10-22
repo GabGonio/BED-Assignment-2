@@ -12,6 +12,13 @@
     "test": "jest",
     "test:watch": "jest --watch"
   },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/test/**/*.test.ts"
+    ]
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/GabGonio/BED-Assignment-2.git"
