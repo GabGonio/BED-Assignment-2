@@ -22,6 +22,32 @@ export const getAllTickets = async (
     }
 };
 
+export const getTicketById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const id = Number(req.params.id);
+        const ticket = await ticketService.getTicketById(id);
+
+        if (!ticket) {
+            res.status(HTTP_STATUS.NOT_FOUND).json({
+                message: "Ticket not found"
+            });
+            return;
+        }
+
+        res.status(HTTP_STATUS.OK).json({
+            message: "Ticket retrieved",
+            data: ticket
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
 export const getTicketUrgency = async (
     req: Request,
     res: Response,
@@ -66,15 +92,15 @@ export const createTicket = async (
     try {
         if (!req.body?.title) {
             res.status(HTTP_STATUS.BAD_REQUEST).json({
-                message: "Ticket title is required"
+                message: "Missing required field: title"
             });
         } else if (!req.body?.description) {
             res.status(HTTP_STATUS.BAD_REQUEST).json({
-                message: "Ticket description is required"
+                message: "Missing required field: description"
             });
         } else if (!["low", "medium", "high", "critical"].includes(req.body?.priority)) {
             res.status(HTTP_STATUS.BAD_REQUEST).json({
-                message: "Valid ticket priority is required"
+                message: "Invalid priority. Must be one of: critical, high, medium, low"
             });
         } else {
             const { title, description, priority } = req.body;
@@ -115,25 +141,26 @@ export const updateTicket = async (
         if (priority !== undefined &&
             !["low", "medium", "high", "critical"].includes(priority)) {
             res.status(HTTP_STATUS.BAD_REQUEST).json({
-                message: "Invalid ticket priority"
+                message: "Invalid priority. Must be one of: critical, high, medium, low"
             });
             return;
         }
 
-        if (status !== undefined &&
-            !["open", "resolved"].includes(status)) {
+
+        if (status !== undefined && !["open", "in-progress", "resolved"].includes(status)) {
             res.status(HTTP_STATUS.BAD_REQUEST).json({
-                message: "Invalid ticket status"
+                message: "Invalid status. Must be one of: open, in-progress, resolved"
             });
             return;
         }
 
         const updatedTicket = await ticketService.updateTicket(id, {
-            title,
-            description,
-            priority,
-            status
+            ...(title !== undefined && { title }),
+            ...(description !== undefined && { description }),
+            ...(priority !== undefined && { priority }),
+            ...(status !== undefined && { status })
         });
+
 
         if (!updatedTicket) {
             res.status(HTTP_STATUS.NOT_FOUND).json({
